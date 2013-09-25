@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
+    <info>
+        <name>ci-teamcity-plugin</name>
+        <display-name>ci-teamcity-plugin</display-name>
+        <version>@Version@</version>
+        <description>Adds TestFlight form to select and push build artifacts to the Test Flight targets configured in a project's pom file.</description>
+        <download-url>Plugin download URL</download-url>
+        <email>andrew.shannon@willowtreeapps.com</email>
+        <vendor>
+            <name>WillowTree Apps</name>
+            <url>http://www.willowtreeapps.com</url>
+            <logo>Plugin vendor logo URL</logo>
+        </vendor>
+    </info>
+    <deployment use-separate-classloader="true" />
+</teamcity-plugin>
