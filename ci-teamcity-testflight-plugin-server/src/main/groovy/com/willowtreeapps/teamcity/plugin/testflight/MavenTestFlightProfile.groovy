@@ -5,14 +5,16 @@ class MavenTestFlightProfile {
     static final String TEAM_TOKEN_KEY ='teamcity.testflight.TeamToken'
     static final String DISTRO_LIST_KEY ='teamcity.testflight.DistroList'
 
-    Long buildId        // Team City build ID
-    String id           // Maven profile ID.
-    String apiToken     // test flight api token
-    String teamToken    // test flight team token
-    String distroList   // name of the test flight email distribution list
+    String internalBuildId      // Team City internal build ID (ie. bt1)
+    Long buildId                // Team City build ID
+    String id                   // Maven profile ID.
+    String apiToken             // test flight api token
+    String teamToken            // test flight team token
+    String distroList           // name of the test flight email distribution list
+    String artifactToPublish    // name of the artifact selected to publish
 
     boolean isValid(){
-        return buildId != null && !id.isEmpty() && !apiToken.isEmpty() && !teamToken.isEmpty() && !distroList.isEmpty()
+        return !internalBuildId.isEmpty() && buildId != null && !id.isEmpty() && !apiToken.isEmpty() && !teamToken.isEmpty() && !distroList.isEmpty()
     }
 
     boolean equals(o) {

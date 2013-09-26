@@ -29,12 +29,16 @@
         </div>
     </c:if>
 
+    <c:if test="${!testFlightEnabled}">
+        Test Flight is not configured for your project.
+    </c:if>
+
     <c:url var="actionUrl" value="/testFlight.html"/>
 
     <hr/>
     <c:forEach items="${testflightOptions}" var="testflight">
-        <sf:form action="${actionUrl}" method="post">
-            <input type="hidden" id="internalBuildID" name="internalBuildID" value="${internalBuildID}"/>
+        <sf:form action="${actionUrl}" method="post" modelAttribute="mavenTestFlightProfile">
+            <input type="hidden" id="internalBuildId" name="internalBuildId" value="${testflight.internalBuildId}"/>
             <input type="hidden" id="buildID" name="buildID" value="${testflight.buildId}"/>
             <input type="hidden" id="id" name="id" value="${testflight.id}"/>
             <input type="hidden" id="apiToken" name="apiToken" value="${testflight.apiToken}"/>
@@ -49,8 +53,16 @@
             <div class="fieldvalue"><c:out value="${testflight.teamToken}"/></div>
             <div class="fieldlabel">Test Flight Distribution List:</div>
             <div class="fieldvalue"><c:out value="${testflight.distroList}"/></div>
+            <div class="fieldlabel">Select an artifact to publish:</div>
+            <div class="fieldvalue">
+                <select name="artifactToPublish" id="artifactToPublish">
+                    <c:forEach items="${artifactFiles}" var="af">
+                        <option value="${af}"><c:out value="${af}"/></option>
+                    </c:forEach>
+                </select>
+            </div>
             <div>
-                <input type="submit" value="Submit">
+                <input type="submit" value="Publish To TestFlight">
             </div>
         </sf:form>
         <hr/>
