@@ -30,16 +30,16 @@
     </c:if>
 
     <c:if test="${!testFlightEnabled}">
-        Test Flight is not configured for your project.
+        Your project is not eligible or configured for Test Flight.
     </c:if>
 
     <c:url var="actionUrl" value="/testFlight.html"/>
 
     <hr/>
     <c:forEach items="${testflightOptions}" var="testflight">
-        <sf:form action="${actionUrl}" method="post" modelAttribute="mavenTestFlightProfile">
+        <sf:form action="${actionUrl}" method="post">
             <input type="hidden" id="internalBuildId" name="internalBuildId" value="${testflight.internalBuildId}"/>
-            <input type="hidden" id="buildID" name="buildID" value="${testflight.buildId}"/>
+            <input type="hidden" id="buildId" name="buildId" value="${testflight.buildId}"/>
             <input type="hidden" id="id" name="id" value="${testflight.id}"/>
             <input type="hidden" id="apiToken" name="apiToken" value="${testflight.apiToken}"/>
             <input type="hidden" id="teamToken" name="teamToken" value="${testflight.teamToken}"/>
@@ -55,12 +55,14 @@
             <div class="fieldvalue"><c:out value="${testflight.distroList}"/></div>
             <div class="fieldlabel">Select an artifact to publish:</div>
             <div class="fieldvalue">
-                <select name="artifactToPublish" id="artifactToPublish">
-                    <c:forEach items="${artifactFiles}" var="af">
-                        <option value="${af}"><c:out value="${af}"/></option>
+                <select name="artifactRelativePath" id="artifactRelativePath">
+                    <c:forEach items="${mobileArtifacts}" var="ma">
+                        <option value="${ma.relativePath}"><c:out value="${ma.name}"/></option>
                     </c:forEach>
                 </select>
             </div>
+            <div class="fieldlabel">Test Flight Notes:</div>
+            <div class="fieldvalue"><input type="text" name="notes" id="notes"/></div>
             <div>
                 <input type="submit" value="Publish To TestFlight">
             </div>

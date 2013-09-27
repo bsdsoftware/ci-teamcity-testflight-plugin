@@ -1,32 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>ci-teamcity-testflight-plugin</artifactId>
-    <groupId>com.willowtreeapps.teamcity</groupId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>ci-teamcity-testflight-plugin-server</artifactId>
-  <packaging>jar</packaging>
-  <dependencies>
-    <dependency>
-      <groupId>org.jetbrains.teamcity</groupId>
-      <artifactId>server-api</artifactId>
-      <version>${teamcity-version}</version>
-      <scope>provided</scope>
-    </dependency>
-      <dependency>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy-all</artifactId>
-          <version>1.8.8</version>
-      </dependency>
-      <dependency>
-          <groupId>org.codehaus.gmaven.runtime</groupId>
-          <artifactId>gmaven-runtime-1.8</artifactId>
-          <version>1.4</version>
-          <scope>test</scope>
-      </dependency>
-  </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>ci-teamcity-testflight-plugin</artifactId>
+        <groupId>com.willowtreeapps.teamcity</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>ci-teamcity-testflight-plugin-server</artifactId>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>server-api</artifactId>
+            <version>${teamcity-version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--Groovy dependencies-->
+        <!--TODO: Update to Groovy 2.-->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>1.8.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.gmaven.runtime</groupId>
+            <artifactId>gmaven-runtime-1.8</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--Ported: Test Flight Uploader dependencies.-->
+        <!--TODO: make it groovish-->
+        <!--TODO: Clean up ported dependencies.-->
+        <!--<dependency>-->
+            <!--<groupId>commons-codec</groupId>-->
+            <!--<artifactId>commons-codec</artifactId>-->
+            <!--<version>1.6</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>commons-logging</groupId>-->
+            <!--<artifactId>commons-logging</artifactId>-->
+            <!--<version>1.1.1</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient-cache</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>javax.mail</groupId>-->
+            <!--<artifactId>mail</artifactId>-->
+            <!--<version>1.4.5</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.tomcat</groupId>-->
+            <!--<artifactId>servlet-api</artifactId>-->
+            <!--<version>6.0.35</version>-->
+        <!--</dependency>-->
+    </dependencies>
     <build>
         <plugins>
             <plugin>

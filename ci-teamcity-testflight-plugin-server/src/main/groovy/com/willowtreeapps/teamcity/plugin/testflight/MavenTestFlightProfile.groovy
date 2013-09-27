@@ -31,4 +31,18 @@ class MavenTestFlightProfile {
     int hashCode() {
         return (id != null ? id.hashCode() : 0)
     }
+
+
+    @Override
+    public java.lang.String toString() {
+        return "MavenTestFlightProfile{" +
+                "internalBuildId='" + internalBuildId + '\'' +
+                ", buildId=" + buildId +
+                ", id='" + id + '\'' +
+                ", apiToken='" + apiToken + '\'' +
+                ", teamToken='" + teamToken + '\'' +
+                ", distroList='" + distroList + '\'' +
+                ", artifactToPublish='" + artifactToPublish + '\'' +
+                '}';
+    }
 }
