@@ -8,6 +8,7 @@ import jetbrains.buildServer.serverSide.SBuildType
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifact
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifacts
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifactsViewMode
+import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager
 import jetbrains.buildServer.web.openapi.PagePlaces
 import jetbrains.buildServer.web.openapi.PlaceId
 import jetbrains.buildServer.web.openapi.PluginDescriptor
@@ -17,17 +18,20 @@ import org.jetbrains.annotations.NotNull
 import javax.servlet.http.HttpServletRequest
 
 class TestFlightBuildExtension extends SimplePageExtension {
-    ProjectManager projectManager
-    BuildsManager buildsManager
+    private final ProjectManager projectManager
+    private final BuildsManager buildsManager
+    private ProjectSettingsManager projectSettingsManager
 
     public TestFlightBuildExtension(@NotNull PagePlaces pagePlaces,
                                     @NotNull PluginDescriptor descriptor,
                                     @NotNull ProjectManager projectManager,
-                                    @NotNull BuildsManager buildsManager
+                                    @NotNull BuildsManager buildsManager,
+                                    @NotNull ProjectSettingsManager projectSettingsManager
     ) {
-        super(pagePlaces, PlaceId.BUILD_RESULTS_FRAGMENT, "testflightBuildExtension", descriptor.getPluginResourcesPath("testflightBuildExtension.jsp"))
+        super(pagePlaces, PlaceId.BUILD_RESULTS_FRAGMENT, 'testflightBuildExtension', descriptor.getPluginResourcesPath('testflightBuildExtension.jsp'))
         this.projectManager = projectManager
         this.buildsManager = buildsManager
+        this.projectSettingsManager = projectSettingsManager
         register()
     }
 
@@ -38,41 +42,71 @@ class TestFlightBuildExtension extends SimplePageExtension {
 
     @Override
     public void fillModel(@NotNull Map<String, Object> model, @NotNull HttpServletRequest request) {
+        boolean hasPomSettings = false
+        TestFlightProfile customProfileSettings = null
         Set<String> errors = []
-        Set<MavenTestFlightProfile> testflightOptions = []
+        Set<TestFlightProfile> testflightOptions = []
         Set<MobileBuildArtifacts> mobileArtifacts = []
 
-        String buildTypeId = request.getParameter("buildTypeId")
+        String buildTypeId = request.getParameter('buildTypeId')
         if (buildTypeId != null) {
             try {
                 SBuildType sBuildType = projectManager.findBuildTypeByExternalId(buildTypeId)
-
-                Long buildId = Long.valueOf(request.getParameter("buildId"))
+                Long buildId = Long.valueOf(request.getParameter('buildId'))
                 SBuild build = buildsManager.findBuildInstanceById(buildId)
 
                 BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_ALL)
 
-                readPom(buildArtifacts, testflightOptions, buildId, sBuildType)
+                hasPomSettings = readPom(buildArtifacts, testflightOptions, buildId, sBuildType)
+
+                if (!hasPomSettings) {
+                    // look for custom settings
+                    customProfileSettings = makeCustomSettings(buildId, sBuildType)
+                }
 
                 // Get the apk or ipa artifacts.
                 BuildArtifact rootArtifactDirectory = buildArtifacts.getRootArtifact()
-
                 searchForMobileArtifacts(rootArtifactDirectory, mobileArtifacts)
 
-
             } catch (Exception e) {
-                errors << e.message
+                errors << 'There was an error setting up the TestFlight form.'
+                e.printStackTrace()
             }
 
-            model.put("testflightOptions", testflightOptions)
-            model.put("errors", errors)
-            model.put("mobileArtifacts", mobileArtifacts)
-            model.put("testFlightEnabled", testflightOptions.size() > 0)
+            model.put('testflightOptions', testflightOptions)
 
+            model.put('mobileArtifacts', mobileArtifacts)
+            model.put('hasPomSettings', hasPomSettings)
+            model.put('customProfileSettings', customProfileSettings)
+
+            checkTestFlightUploadResults(model, request, errors)
+            model.put('errors', errors)
         }
 
     }
 
+    private TestFlightProfile makeCustomSettings(long buildId, SBuildType sBuildType) {
+        TestFlightProjectSettings settings = (TestFlightProjectSettings) projectSettingsManager.getSettings(sBuildType.project.projectId, TestFlightProjectSettings.NAME)
+        return settings.getProjectProfile(sBuildType.project.projectId, buildId, sBuildType.internalId)
+    }
+
+    private void checkTestFlightUploadResults(final Map<String, Object> model, final HttpServletRequest request, final Set<String> errors){
+        if (request.getParameter('testflightUploadSucceeded')){
+            boolean success = Boolean.valueOf(request.getParameter('testflightUploadSucceeded'))
+            if (success){
+                model.put('testflightUploadSucceeded', 'The TestFlight upload succeeded.')
+            } else {
+                errors << 'The TestFlight upload failed.'
+            }
+        }
+    }
+
+    /**
+     * Recursive method that looks for apk and ipa files in all artifact directories.
+     *
+     * @param directory
+     * @param mobileArtifacts
+     */
     private void searchForMobileArtifacts(BuildArtifact directory, Set<MobileBuildArtifacts> mobileArtifacts) {
         for (BuildArtifact ba : directory.getChildren()) {
             if (ba.isFile() && (ba.getName().endsWith(MobileBuildArtifacts.IOS_EXTENSION) || ba.getName().endsWith(MobileBuildArtifacts.ANDROID_EXTENSION))) {
@@ -83,18 +117,29 @@ class TestFlightBuildExtension extends SimplePageExtension {
         }
     }
 
-    private void readPom(BuildArtifacts buildArtifacts, Set<MavenTestFlightProfile> testflightOptions, long buildId, sBuildType) {
+    /**
+     * Try to read a Maven pom.xml file and if one exists attempt to get
+     * the TestFlight parameters from it.
+     *
+     * @param buildArtifacts
+     * @param testflightOptions
+     * @param buildId
+     * @param sBuildType
+     */
+    private boolean readPom(BuildArtifacts buildArtifacts, Set<TestFlightProfile> testflightOptions,
+                         long buildId, SBuildType sBuildType) {
         // The pom.xml file must be configured as an artifact in the Team City Maven build step.
         BuildArtifact pomFile = buildArtifacts.getArtifact('pom.xml')
         if (pomFile != null && pomFile.isFile()) {
             GPathResult pom = new XmlSlurper().parse(pomFile.getInputStream())
             pom.profiles.profile.each { prof ->
 
-                MavenTestFlightProfile p = new MavenTestFlightProfile(internalBuildId: sBuildType.getInternalId(),
+                TestFlightProfile p = new TestFlightProfile(internalBuildId: sBuildType.getInternalId(),
                         buildId: buildId, id: prof.id.text(),
-                        apiToken: prof.properties[MavenTestFlightProfile.API_TOKEN_KEY],
-                        teamToken: prof.properties[MavenTestFlightProfile.TEAM_TOKEN_KEY],
-                        distroList: prof.properties[MavenTestFlightProfile.DISTRO_LIST_KEY],
+                        apiToken: prof.properties[TestFlightProfile.API_TOKEN_KEY],
+                        teamToken: prof.properties[TestFlightProfile.TEAM_TOKEN_KEY],
+                        distroList: prof.properties[TestFlightProfile.DISTRO_LIST_KEY],
+                        projectId: sBuildType.project.projectId
                 )
 
                 if (p.isValid()) {
@@ -102,5 +147,7 @@ class TestFlightBuildExtension extends SimplePageExtension {
                 }
             }
         }
+        return testflightOptions.size() > 0
     }
+
 }

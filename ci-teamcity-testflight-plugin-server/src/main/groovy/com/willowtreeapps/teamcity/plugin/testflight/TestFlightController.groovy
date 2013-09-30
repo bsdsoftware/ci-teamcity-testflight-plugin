@@ -3,13 +3,14 @@ package com.willowtreeapps.teamcity.plugin.testflight
 import com.willowtreeapps.teamcity.plugin.testflight.uploader.TestFlightUploader
 import com.willowtreeapps.teamcity.plugin.testflight.uploader.UploadRequest
 import jetbrains.buildServer.controllers.BaseController
-import jetbrains.buildServer.controllers.SimpleView
 import jetbrains.buildServer.serverSide.BuildsManager
 import jetbrains.buildServer.serverSide.SBuild
 import jetbrains.buildServer.serverSide.SBuildServer
+import jetbrains.buildServer.serverSide.SProject
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifactHolder
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifacts
 import jetbrains.buildServer.serverSide.artifacts.BuildArtifactsViewMode
+import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager
 import jetbrains.buildServer.web.openapi.WebControllerManager
 import org.apache.commons.io.IOUtils
 import org.jetbrains.annotations.NotNull
@@ -21,113 +22,119 @@ import javax.servlet.http.HttpServletResponse
 
 class TestFlightController extends BaseController {
 
-    private final WebControllerManager myManager
+    private final WebControllerManager webControllerManager
     private final BuildsManager buildsManager
-
-    private final String TAG_NAME = 'SUBMITTED_TO_TEST_FLIGHT'
+    private final ProjectSettingsManager projectSettingsManager
+    private boolean customSettingsPosted = false
 
     public TestFlightController(
             @NotNull final SBuildServer sBuildServer,
             @NotNull final WebControllerManager manager,
-            @NotNull BuildsManager buildsManager
+            @NotNull BuildsManager buildsManager,
+            @NotNull ProjectSettingsManager projectSettingsManager
     ) {
         super(sBuildServer)
-        myManager = manager
+        this.webControllerManager = manager
         this.buildsManager = buildsManager
+        this.projectSettingsManager = projectSettingsManager
     }
 
     public void register() {
-        myManager.registerController("/testFlight.html", this)
+        webControllerManager.registerController('/testFlight.html', this)
+
+        TestFlightSettingsFactory testFlightSettingsFactory = new TestFlightSettingsFactory();
+        projectSettingsManager.registerSettingsFactory(TestFlightProjectSettings.NAME, testFlightSettingsFactory);
     }
 
     @Nullable
     @Override
     protected ModelAndView doHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response) throws Exception {
-        boolean testFlightSuccess = false
-        String error = ''
-        Map uploadResults = [:]
+        boolean success = false
 
         String artifactRelativePath = request.getParameter('artifactRelativePath')
         String notes = request.getParameter('notes')
-        MavenTestFlightProfile mavenTestFlightProfile = new MavenTestFlightProfile(
+        customSettingsPosted = Boolean.valueOf(request.getParameter('customSettings'))
+
+        TestFlightProfile testFlightProfile = new TestFlightProfile(
                 internalBuildId: request.getParameter('internalBuildId'),
                 buildId: Long.parseLong(request.getParameter('buildId')),
                 id: request.getParameter('id'),
                 apiToken: request.getParameter('apiToken'),
                 teamToken: request.getParameter('teamToken'),
-                distroList: request.getParameter('distroList')
+                distroList: request.getParameter('distroList'),
+                projectId: request.getParameter('projectId')
         )
 
-        if (mavenTestFlightProfile.isValid() && !artifactRelativePath.isEmpty()) {
+        if (testFlightProfile.isValid() && !artifactRelativePath.isEmpty()) {
 
             // TODO
             // Send an email to the submitter
-            // post a confirmation message to the overview page if we can, or show a new html page
 
-            SBuild build = buildsManager.findBuildInstanceById(mavenTestFlightProfile.buildId)
+            SBuild build = buildsManager.findBuildInstanceById(testFlightProfile.buildId)
 
             try {
                 TestFlightUploader uploader = new TestFlightUploader()
-                UploadRequest testflightUploadRequest = new UploadRequest(apiToken: mavenTestFlightProfile.apiToken,
-                        teamToken: mavenTestFlightProfile.teamToken, buildNotes: notes,
-                        lists: mavenTestFlightProfile.distroList, notifyTeam: true, replace: true,
-                dsymFile: null)
+                UploadRequest testflightUploadRequest = new UploadRequest(apiToken: testFlightProfile.apiToken,
+                        teamToken: testFlightProfile.teamToken, buildNotes: notes,
+                        lists: testFlightProfile.distroList, notifyTeam: true, replace: true,
+                        dsymFile: null)
 
                 BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_ALL)
 
                 BuildArtifactHolder artifactHolder = buildArtifacts.findArtifact(artifactRelativePath)
 
-                if (!artifactHolder.isAvailable()) {
-                    error += "The artifact was not found on disk for the relative path: ${artifactRelativePath}"
-                } else {
-                    final File tempFile = createTempFile(getFilePrefix(artifactHolder.getName()), getFileSuffix(artifactHolder.getName()))
-                    tempFile.deleteOnExit()
+                final File tempFile = createTempFile(getFilePrefix(artifactHolder.getName()), getFileSuffix(artifactHolder.getName()))
+                tempFile.deleteOnExit()
 
-                    FileOutputStream out = new FileOutputStream(tempFile)
-                    IOUtils.copy(artifactHolder.getArtifact().getInputStream(), out)
+                FileOutputStream out = new FileOutputStream(tempFile)
+                IOUtils.copy(artifactHolder.getArtifact().getInputStream(), out)
 
-                    testflightUploadRequest.file = tempFile
-                    assert testflightUploadRequest.file != null
+                testflightUploadRequest.file = tempFile
 
-                    uploadResults.putAll(uploader.upload(testflightUploadRequest))
+                uploader.upload(testflightUploadRequest)
 
-                    testFlightSuccess = true
-                }
+                persistCustomTestFlightProfile(customSettingsPosted, testFlightProfile)
+
+                success = true
             } catch (Exception e) {
-                error += 'The TestFlight upload could not be completed.'
+                // TODO: figure out what to do with exceptions.
             }
-
-//            TODO:  Got an unmodifiable collections error when adding a tag.
-//            if (testFlightSuccess) {
-//                List<String> tags = build.getTags()
-//                if (!tags.contains(TAG_NAME)) {
-//                    tags.add(TAG_NAME)
-//                }
-//                build.setTags(build.getOwner(), tags)
-//            }
         }
 
-        ModelAndView mav = SimpleView.createTextView(uploadResults.toMapString())
-        return mav
+        return new ModelAndView(makeReturnUrl(testFlightProfile, success))
     }
 
-    public File createTempFile(String prefix, String suffix){
+    private String makeReturnUrl(final TestFlightProfile profile, final boolean result) {
+        // redirect:
+        return "redirect:viewLog.html?buildId=${profile.buildId}&tab=buildResultsDiv&buildTypeId=${buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getExternalId()}&testflightUploadSucceeded=${result}"
+    }
+
+    private File createTempFile(String prefix, String suffix) {
         String fileName = prefix + suffix
         String tempDirPath = System.getProperty("java.io.tmpdir")
 
         File fileCheck = new File("${tempDirPath}/${fileName}")
-        if(fileCheck.exists() && fileCheck.isFile()){
+        if (fileCheck.exists() && fileCheck.isFile()) {
             fileCheck.delete()
         }
         return new File(tempDirPath, fileName)
     }
 
-    // Assuming only ipa's and apk's are supported.
     static String getFilePrefix(String fileName) {
         return fileName.substring(0, (fileName.length() - getFileSuffix(fileName).length()))
     }
 
+    // Assuming only ipa's and apk's are supported.
     static String getFileSuffix(String fileName) {
         return fileName.endsWith(MobileBuildArtifacts.IOS_EXTENSION) ? MobileBuildArtifacts.IOS_EXTENSION : MobileBuildArtifacts.ANDROID_EXTENSION
+    }
+
+    private void persistCustomTestFlightProfile(final boolean customSettingsPosted, final TestFlightProfile profile) {
+        if (customSettingsPosted) {
+            TestFlightProjectSettings settings = (TestFlightProjectSettings) projectSettingsManager.getSettings(profile.projectId, TestFlightProjectSettings.NAME)
+            settings.updateProfile(profile)
+            SProject project = buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getProject()
+            project.persist()
+        }
     }
 }

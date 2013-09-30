@@ -1,6 +1,6 @@
 package com.willowtreeapps.teamcity.plugin.testflight
 
-class MavenTestFlightProfile {
+class TestFlightProfile {
     static final String API_TOKEN_KEY ='teamcity.testflight.ApiToken'
     static final String TEAM_TOKEN_KEY ='teamcity.testflight.TeamToken'
     static final String DISTRO_LIST_KEY ='teamcity.testflight.DistroList'
@@ -12,6 +12,7 @@ class MavenTestFlightProfile {
     String teamToken            // test flight team token
     String distroList           // name of the test flight email distribution list
     String artifactToPublish    // name of the artifact selected to publish
+    String projectId            // project ID from an SBuildType
 
     boolean isValid(){
         return !internalBuildId.isEmpty() && buildId != null && !id.isEmpty() && !apiToken.isEmpty() && !teamToken.isEmpty() && !distroList.isEmpty()
@@ -21,7 +22,7 @@ class MavenTestFlightProfile {
         if (this.is(o)) return true
         if (getClass() != o.class) return false
 
-        MavenTestFlightProfile that = (MavenTestFlightProfile) o
+        TestFlightProfile that = (TestFlightProfile) o
 
         if (id != that.id) return false
 
@@ -30,19 +31,5 @@ class MavenTestFlightProfile {
 
     int hashCode() {
         return (id != null ? id.hashCode() : 0)
-    }
-
-
-    @Override
-    public java.lang.String toString() {
-        return "MavenTestFlightProfile{" +
-                "internalBuildId='" + internalBuildId + '\'' +
-                ", buildId=" + buildId +
-                ", id='" + id + '\'' +
-                ", apiToken='" + apiToken + '\'' +
-                ", teamToken='" + teamToken + '\'' +
-                ", distroList='" + distroList + '\'' +
-                ", artifactToPublish='" + artifactToPublish + '\'' +
-                '}';
     }
 }
