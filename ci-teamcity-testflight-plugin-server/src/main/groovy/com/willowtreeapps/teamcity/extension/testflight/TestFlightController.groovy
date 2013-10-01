@@ -50,18 +50,18 @@ class TestFlightController extends BaseController {
         UploadResult uploadResult
         ModelAndView mav = new ModelAndView()
 
-        String artifactRelativePath = request.getParameter(TestFlightSettings.ARTIFACT_RELATIVE_PATH)
-        String notes = request.getParameter(TestFlightSettings.NOTES)
+        String artifactRelativePath = request.getParameter(TestFlightSettings.ARTIFACT_RELATIVE_PATH).trim()
+        String notes = request.getParameter(TestFlightSettings.NOTES).trim()
         customSettingsPosted = Boolean.valueOf(request.getParameter(TestFlightSettings.IS_CUSTOM_SETTINGS))
 
         TestFlightProfile testFlightProfile = new TestFlightProfile(
                 buildId: Long.parseLong(request.getParameter(TestFlightSettings.BUILD_ID)),
-                id: request.getParameter(TestFlightSettings.PROFILE_ID),
-                apiToken: request.getParameter(TestFlightSettings.API_TOKEN),
+                id: request.getParameter(TestFlightSettings.PROFILE_ID).trim(),
+                apiToken: request.getParameter(TestFlightSettings.API_TOKEN).trim(),
                 teamToken: request.getParameter(TestFlightSettings.TEAM_TOKEN),
-                distroLists: request.getParameter(TestFlightSettings.DISTRO_LIST),
+                distroLists: request.getParameter(TestFlightSettings.DISTRO_LIST).trim(),
                 notifyDistroList: Boolean.valueOf(request.getParameter(TestFlightSettings.NOTIFY_DISTRO_LIST)),
-                projectId: request.getParameter(TestFlightSettings.PROJECT_ID)
+                projectId: request.getParameter(TestFlightSettings.PROJECT_ID).trim()
         )
 
         if (testFlightProfile.isValid() && !artifactRelativePath.isEmpty()) {
@@ -90,6 +90,8 @@ class TestFlightController extends BaseController {
 
                 persistCustomTestFlightProfile(customSettingsPosted, testFlightProfile)
 
+                addTag(build, testFlightProfile)
+
                 deleteTempFile(getFilePrefix(artifactHolder.getName()), getFileSuffix(artifactHolder.getName()))
             } catch (Exception e) {
                 e.printStackTrace()
@@ -101,6 +103,16 @@ class TestFlightController extends BaseController {
         mav.viewName = makeReturnUrl(testFlightProfile, uploadResult)
 
         return mav
+    }
+
+    private void addTag(final SBuild build, final TestFlightProfile profile){
+        String tagName = "TF_${profile.id.replace(' ', '_')}"
+        List<String> tags = new ArrayList<String>()
+        tags.addAll(build.getTags())
+        if (!tags.contains(tagName)){
+            tags << tagName
+        }
+        build.setTags(build.owner, tags)
     }
 
     private String makeReturnUrl(final TestFlightProfile profile, final UploadResult uploadResult) {
