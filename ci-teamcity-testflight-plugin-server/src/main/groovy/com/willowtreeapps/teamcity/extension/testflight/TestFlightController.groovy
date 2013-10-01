@@ -1,7 +1,5 @@
-package com.willowtreeapps.teamcity.plugin.testflight
+package com.willowtreeapps.teamcity.extension.testflight
 
-import com.willowtreeapps.teamcity.plugin.testflight.uploader.TestFlightUploader
-import com.willowtreeapps.teamcity.plugin.testflight.uploader.UploadRequest
 import jetbrains.buildServer.controllers.BaseController
 import jetbrains.buildServer.serverSide.BuildsManager
 import jetbrains.buildServer.serverSide.SBuild
@@ -49,7 +47,7 @@ class TestFlightController extends BaseController {
     @Nullable
     @Override
     protected ModelAndView doHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response) throws Exception {
-        boolean success = false
+        UploadResult uploadResult
         ModelAndView mav = new ModelAndView()
 
         String artifactRelativePath = request.getParameter(TestFlightSettings.ARTIFACT_RELATIVE_PATH)
@@ -57,12 +55,12 @@ class TestFlightController extends BaseController {
         customSettingsPosted = Boolean.valueOf(request.getParameter(TestFlightSettings.IS_CUSTOM_SETTINGS))
 
         TestFlightProfile testFlightProfile = new TestFlightProfile(
-                internalBuildId: request.getParameter(TestFlightSettings.INTERNAL_BUILD_ID),
                 buildId: Long.parseLong(request.getParameter(TestFlightSettings.BUILD_ID)),
                 id: request.getParameter(TestFlightSettings.PROFILE_ID),
                 apiToken: request.getParameter(TestFlightSettings.API_TOKEN),
                 teamToken: request.getParameter(TestFlightSettings.TEAM_TOKEN),
-                distroList: request.getParameter(TestFlightSettings.DISTRO_LIST),
+                distroLists: request.getParameter(TestFlightSettings.DISTRO_LIST),
+                notifyDistroList: Boolean.valueOf(request.getParameter(TestFlightSettings.NOTIFY_DISTRO_LIST)),
                 projectId: request.getParameter(TestFlightSettings.PROJECT_ID)
         )
 
@@ -73,8 +71,8 @@ class TestFlightController extends BaseController {
                 TestFlightUploader uploader = new TestFlightUploader()
                 UploadRequest testflightUploadRequest = new UploadRequest(apiToken: testFlightProfile.apiToken,
                         teamToken: testFlightProfile.teamToken, buildNotes: notes,
-                        lists: testFlightProfile.distroList, notifyTeam: true, replace: true,
-                        dsymFile: null)
+                        distributionLists: testFlightProfile.distroLists,
+                        notifyDistributionList: testFlightProfile.notifyDistroList)
 
                 BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_ALL)
 
@@ -88,30 +86,27 @@ class TestFlightController extends BaseController {
 
                 testflightUploadRequest.file = tempFile
 
-                uploader.upload(testflightUploadRequest)
+                uploadResult = uploader.upload(testflightUploadRequest)
 
                 persistCustomTestFlightProfile(customSettingsPosted, testFlightProfile)
 
                 deleteTempFile(getFilePrefix(artifactHolder.getName()), getFileSuffix(artifactHolder.getName()))
-
-                success = true
             } catch (Exception e) {
                 e.printStackTrace()
+                uploadResult.succeeded = false
+                uploadResult.message = 'The TestFlight upload encountered an error.  Check the logs.'
             }
         }
 
-        mav.viewName = makeReturnUrl(testFlightProfile, success)
+        mav.viewName = makeReturnUrl(testFlightProfile, uploadResult)
 
         return mav
     }
 
-    private String makeReturnUrl(final TestFlightProfile profile, final boolean uploadSucceeded) {
+    private String makeReturnUrl(final TestFlightProfile profile, final UploadResult uploadResult) {
         String redirectUrl = "redirect:viewLog.html?buildId=${profile.buildId}&tab=buildResultsDiv&buildTypeId=${buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getExternalId()}&"
-        if (uploadSucceeded) {
-            redirectUrl += "${TestFlightBuildExtension.PARAM_MESSAGE}=The TestFlight upload was successful."
-        } else {
-            redirectUrl += "${TestFlightBuildExtension.PARAM_ERROR}=The TestFlight upload encountered an error.  Check the logs."
-        }
+
+        redirectUrl += "${uploadResult.succeeded ? TestFlightBuildExtension.PARAM_MESSAGE : TestFlightBuildExtension.PARAM_ERROR}=${uploadResult.message}"
 
         return redirectUrl
     }
@@ -127,7 +122,7 @@ class TestFlightController extends BaseController {
         return new File(tempDirPath, fileName)
     }
 
-    private void deleteTempFile(final String prefix, final String suffix){
+    private void deleteTempFile(final String prefix, final String suffix) {
         String fileName = prefix + suffix
         String tempDirPath = System.getProperty("java.io.tmpdir")
 

@@ -1,4 +1,4 @@
-package com.willowtreeapps.teamcity.plugin.testflight
+package com.willowtreeapps.teamcity.extension.testflight
 
 import jetbrains.buildServer.serverSide.settings.ProjectSettings
 import org.jdom.Element
@@ -11,25 +11,24 @@ class TestFlightSettings implements ProjectSettings {
     public static final String ARTIFACT_RELATIVE_PATH = 'artifactRelativePath'
     public static final String BUILD_ID = 'buildId'
     public static final String BUILD_TYPE_ID = 'buildTypeId'
-    public static final String INTERNAL_BUILD_ID = 'internalBuildId'
     public static final String IS_CUSTOM_SETTINGS = 'isCustomSettings'
     public static final String NOTES = 'notes'
     public static final String PROJECT_ID = 'projectId'
     public static final String PROFILE_ID = 'id'
     public static final String API_TOKEN = 'apiToken'
     public static final String TEAM_TOKEN = 'teamToken'
-    public static final String DISTRO_LIST = 'distroList'
+    public static final String DISTRO_LIST = 'distroLists'
+    public static final String NOTIFY_DISTRO_LIST = 'notifyDistroList'
 
     private Map<String, TestFlightProfile> testflightProfiles = [:]
 
-    public TestFlightProfile getProjectProfile(final String projectId, final long buildId, final String internalBuildId) {
+    public TestFlightProfile getProjectProfile(final String projectId, final long buildId) {
         TestFlightProfile profile = testflightProfiles.get(projectId)
-        if (!profile){
+        if (!profile) {
             profile = new TestFlightProfile()
         }
 
         profile.buildId = buildId
-        profile.internalBuildId = internalBuildId
         profile.projectId = projectId
 
         return profile
@@ -49,7 +48,8 @@ class TestFlightSettings implements ProjectSettings {
                     new TestFlightProfile(id: e.getAttributeValue(PROFILE_ID),
                             apiToken: e.getAttributeValue(API_TOKEN),
                             teamToken: e.getAttributeValue(TEAM_TOKEN),
-                            distroList: e.getAttributeValue(DISTRO_LIST)))
+                            distroLists: e.getAttributeValue(DISTRO_LIST),
+                            notifyDistroList: e.getAttributeValue(NOTIFY_DISTRO_LIST) != null ? String.valueOf(e.getAttributeValue(NOTIFY_DISTRO_LIST)) : false))
         }
     }
 
@@ -60,7 +60,8 @@ class TestFlightSettings implements ProjectSettings {
             settings.setAttribute(PROFILE_ID, value.id)
             settings.setAttribute(API_TOKEN, value.apiToken)
             settings.setAttribute(TEAM_TOKEN, value.teamToken)
-            settings.setAttribute(DISTRO_LIST, value.distroList)
+            settings.setAttribute(DISTRO_LIST, value.distroLists)
+            settings.setAttribute(NOTIFY_DISTRO_LIST, String.valueOf(value.notifyDistroList))
             parentElement.addContent(settings)
         }
     }

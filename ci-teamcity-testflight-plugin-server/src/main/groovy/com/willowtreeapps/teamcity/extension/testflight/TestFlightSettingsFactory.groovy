@@ -1,4 +1,4 @@
-package com.willowtreeapps.teamcity.plugin.testflight
+package com.willowtreeapps.teamcity.extension.testflight
 
 import jetbrains.buildServer.serverSide.settings.ProjectSettings
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsFactory

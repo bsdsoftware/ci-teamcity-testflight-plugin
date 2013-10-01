@@ -1,4 +1,4 @@
-package com.willowtreeapps.teamcity.plugin.testflight
+package com.willowtreeapps.teamcity.extension.testflight
 
 class MobileBuildArtifacts {
     public static final String IOS_EXTENSION = '.ipa'

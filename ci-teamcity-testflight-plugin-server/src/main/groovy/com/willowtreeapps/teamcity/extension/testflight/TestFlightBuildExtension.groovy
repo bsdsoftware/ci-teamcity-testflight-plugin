@@ -1,4 +1,4 @@
-package com.willowtreeapps.teamcity.plugin.testflight
+package com.willowtreeapps.teamcity.extension.testflight
 
 import groovy.util.slurpersupport.GPathResult
 import jetbrains.buildServer.serverSide.BuildsManager
@@ -76,13 +76,13 @@ class TestFlightBuildExtension extends SimplePageExtension {
                 BuildArtifact rootArtifactDirectory = buildArtifacts.getRootArtifact()
                 searchForMobileArtifacts(rootArtifactDirectory, mobileArtifacts)
 
-                if (!mobileArtifacts){
+                if (!mobileArtifacts) {
                     addError('no_field', 'No Android or iOS artifacts were found.  Check your artifacts configuration.', model)
                 }
 
             } catch (Exception e) {
                 e.printStackTrace()
-                addError('no_field', 'There was an error setting up the TestFlight form.', model)
+                addError('no_field', 'There was an error setting up the TestFlight form.  Check the logs.', model)
             }
 
             model.put(MODEL_TEST_FLIGHT_OPTIONS, testflightOptions)
@@ -106,32 +106,32 @@ class TestFlightBuildExtension extends SimplePageExtension {
      */
     private TestFlightProfile makeCustomSettings(long buildId, final SBuildType sBuildType) {
         TestFlightSettings settings = (TestFlightSettings) projectSettingsManager.getSettings(sBuildType.project.projectId, TestFlightSettings.NAME)
-        return settings.getProjectProfile(sBuildType.project.projectId, buildId, sBuildType.internalId)
+        return settings.getProjectProfile(sBuildType.project.projectId, buildId)
     }
 
-    public static void addError(final String field, final String errorMsg, final Map<String, Object> model){
+    public static void addError(final String field, final String errorMsg, final Map<String, Object> model) {
         Map<String, String> errors = model.get(MODEL_ERRORS)
-        if (!errors){
+        if (!errors) {
             errors = [:]
         }
         errors.put(field, errorMsg)
         model.put(MODEL_ERRORS, errors)
     }
 
-    public static void addMessage(final String message, final Map<String, Object> model){
+    public static void addMessage(final String message, final Map<String, Object> model) {
         def msgs = model.get(MODEL_MESSAGES)
-        if (!msgs){
+        if (!msgs) {
             msgs = []
         }
         msgs << message
         model.put(MODEL_MESSAGES, msgs)
     }
 
-    private void checkTestFlightUploadResults(final Map<String, Object> model, final HttpServletRequest request){
-        if (request.getParameter(PARAM_MESSAGE)){
+    private void checkTestFlightUploadResults(final Map<String, Object> model, final HttpServletRequest request) {
+        if (request.getParameter(PARAM_MESSAGE)) {
             addMessage(request.getParameter(PARAM_MESSAGE), model)
         }
-        if (request.getParameter(PARAM_ERROR)){
+        if (request.getParameter(PARAM_ERROR)) {
             addError('no_field', request.getParameter(PARAM_ERROR), model)
         }
     }
@@ -163,18 +163,18 @@ class TestFlightBuildExtension extends SimplePageExtension {
      * @return true if there are any valid test flight configurations found in the pom
      */
     private boolean readPom(final BuildArtifacts buildArtifacts, final Set<TestFlightProfile> testflightOptions,
-                         long buildId, SBuildType sBuildType) {
+                            long buildId, SBuildType sBuildType) {
         // The pom.xml file must be configured as an artifact in the Team City Maven build step.
         BuildArtifact pomFile = buildArtifacts.getArtifact('pom.xml')
         if (pomFile != null && pomFile.isFile()) {
             GPathResult pom = new XmlSlurper().parse(pomFile.getInputStream())
             pom.profiles.profile.each { prof ->
 
-                TestFlightProfile p = new TestFlightProfile(internalBuildId: sBuildType.internalId,
-                        buildId: buildId, id: prof.id.text(),
+                TestFlightProfile p = new TestFlightProfile(buildId: buildId, id: prof.id.text(),
                         apiToken: prof.properties[TestFlightProfile.API_TOKEN_KEY],
                         teamToken: prof.properties[TestFlightProfile.TEAM_TOKEN_KEY],
-                        distroList: prof.properties[TestFlightProfile.DISTRO_LIST_KEY],
+                        distroLists: prof.properties[TestFlightProfile.DISTRO_LIST_KEY],
+                        notifyDistroList: prof.properties[TestFlightProfile.NOTIFY_DISTRO_LIST_KEY] ? Boolean.valueOf((String) prof.properties[TestFlightProfile.NOTIFY_DISTRO_LIST_KEY]) : false,
                         projectId: sBuildType.project.projectId
                 )
 
