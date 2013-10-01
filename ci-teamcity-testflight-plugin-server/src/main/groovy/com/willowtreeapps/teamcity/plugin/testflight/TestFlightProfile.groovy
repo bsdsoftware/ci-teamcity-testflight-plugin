@@ -1,5 +1,6 @@
 package com.willowtreeapps.teamcity.plugin.testflight
 
+
 class TestFlightProfile {
     static final String API_TOKEN_KEY ='teamcity.testflight.ApiToken'
     static final String TEAM_TOKEN_KEY ='teamcity.testflight.TeamToken'

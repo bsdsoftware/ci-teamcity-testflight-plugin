@@ -4,12 +4,18 @@ import jetbrains.buildServer.serverSide.settings.ProjectSettings
 import org.jdom.Element
 
 
-class TestFlightProjectSettings implements ProjectSettings {
+class TestFlightSettings implements ProjectSettings {
     public static final String NAME = 'testflight_project_settings'
 
     public static final String CUSTOM_TEST_FLIGHT_SETTINGS_ELEMENT_NAME = 'customTestFlightSettings'
+    public static final String ARTIFACT_RELATIVE_PATH = 'artifactRelativePath'
+    public static final String BUILD_ID = 'buildId'
+    public static final String BUILD_TYPE_ID = 'buildTypeId'
+    public static final String INTERNAL_BUILD_ID = 'internalBuildId'
+    public static final String IS_CUSTOM_SETTINGS = 'isCustomSettings'
+    public static final String NOTES = 'notes'
     public static final String PROJECT_ID = 'projectId'
-    public static final String PROFILE_ID = 'profileId'
+    public static final String PROFILE_ID = 'id'
     public static final String API_TOKEN = 'apiToken'
     public static final String TEAM_TOKEN = 'teamToken'
     public static final String DISTRO_LIST = 'distroList'

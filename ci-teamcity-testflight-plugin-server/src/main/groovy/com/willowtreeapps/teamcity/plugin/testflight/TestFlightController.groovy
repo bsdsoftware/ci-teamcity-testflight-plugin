@@ -43,33 +43,30 @@ class TestFlightController extends BaseController {
         webControllerManager.registerController('/testFlight.html', this)
 
         TestFlightSettingsFactory testFlightSettingsFactory = new TestFlightSettingsFactory();
-        projectSettingsManager.registerSettingsFactory(TestFlightProjectSettings.NAME, testFlightSettingsFactory);
+        projectSettingsManager.registerSettingsFactory(TestFlightSettings.NAME, testFlightSettingsFactory);
     }
 
     @Nullable
     @Override
     protected ModelAndView doHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response) throws Exception {
         boolean success = false
+        ModelAndView mav = new ModelAndView()
 
-        String artifactRelativePath = request.getParameter('artifactRelativePath')
-        String notes = request.getParameter('notes')
-        customSettingsPosted = Boolean.valueOf(request.getParameter('customSettings'))
+        String artifactRelativePath = request.getParameter(TestFlightSettings.ARTIFACT_RELATIVE_PATH)
+        String notes = request.getParameter(TestFlightSettings.NOTES)
+        customSettingsPosted = Boolean.valueOf(request.getParameter(TestFlightSettings.IS_CUSTOM_SETTINGS))
 
         TestFlightProfile testFlightProfile = new TestFlightProfile(
-                internalBuildId: request.getParameter('internalBuildId'),
-                buildId: Long.parseLong(request.getParameter('buildId')),
-                id: request.getParameter('id'),
-                apiToken: request.getParameter('apiToken'),
-                teamToken: request.getParameter('teamToken'),
-                distroList: request.getParameter('distroList'),
-                projectId: request.getParameter('projectId')
+                internalBuildId: request.getParameter(TestFlightSettings.INTERNAL_BUILD_ID),
+                buildId: Long.parseLong(request.getParameter(TestFlightSettings.BUILD_ID)),
+                id: request.getParameter(TestFlightSettings.PROFILE_ID),
+                apiToken: request.getParameter(TestFlightSettings.API_TOKEN),
+                teamToken: request.getParameter(TestFlightSettings.TEAM_TOKEN),
+                distroList: request.getParameter(TestFlightSettings.DISTRO_LIST),
+                projectId: request.getParameter(TestFlightSettings.PROJECT_ID)
         )
 
         if (testFlightProfile.isValid() && !artifactRelativePath.isEmpty()) {
-
-            // TODO
-            // Send an email to the submitter
-
             SBuild build = buildsManager.findBuildInstanceById(testFlightProfile.buildId)
 
             try {
@@ -95,21 +92,42 @@ class TestFlightController extends BaseController {
 
                 persistCustomTestFlightProfile(customSettingsPosted, testFlightProfile)
 
+                deleteTempFile(getFilePrefix(artifactHolder.getName()), getFileSuffix(artifactHolder.getName()))
+
                 success = true
             } catch (Exception e) {
-                // TODO: figure out what to do with exceptions.
+                e.printStackTrace()
             }
         }
 
-        return new ModelAndView(makeReturnUrl(testFlightProfile, success))
+        mav.viewName = makeReturnUrl(testFlightProfile, success)
+
+        return mav
     }
 
-    private String makeReturnUrl(final TestFlightProfile profile, final boolean result) {
-        // redirect:
-        return "redirect:viewLog.html?buildId=${profile.buildId}&tab=buildResultsDiv&buildTypeId=${buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getExternalId()}&testflightUploadSucceeded=${result}"
+    private String makeReturnUrl(final TestFlightProfile profile, final boolean uploadSucceeded) {
+        String redirectUrl = "redirect:viewLog.html?buildId=${profile.buildId}&tab=buildResultsDiv&buildTypeId=${buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getExternalId()}&"
+        if (uploadSucceeded) {
+            redirectUrl += "${TestFlightBuildExtension.PARAM_MESSAGE}=The TestFlight upload was successful."
+        } else {
+            redirectUrl += "${TestFlightBuildExtension.PARAM_ERROR}=The TestFlight upload encountered an error.  Check the logs."
+        }
+
+        return redirectUrl
     }
 
-    private File createTempFile(String prefix, String suffix) {
+    // Custom temp file handling.
+    private File createTempFile(final String prefix, final String suffix) {
+        String fileName = prefix + suffix
+        String tempDirPath = System.getProperty("java.io.tmpdir")
+
+        // Delete the temp file if one already exists with the same name.
+        deleteTempFile(prefix, suffix)
+
+        return new File(tempDirPath, fileName)
+    }
+
+    private void deleteTempFile(final String prefix, final String suffix){
         String fileName = prefix + suffix
         String tempDirPath = System.getProperty("java.io.tmpdir")
 
@@ -117,23 +135,29 @@ class TestFlightController extends BaseController {
         if (fileCheck.exists() && fileCheck.isFile()) {
             fileCheck.delete()
         }
-        return new File(tempDirPath, fileName)
     }
 
-    static String getFilePrefix(String fileName) {
+    static String getFilePrefix(final String fileName) {
         return fileName.substring(0, (fileName.length() - getFileSuffix(fileName).length()))
     }
 
     // Assuming only ipa's and apk's are supported.
-    static String getFileSuffix(String fileName) {
+    static String getFileSuffix(final String fileName) {
         return fileName.endsWith(MobileBuildArtifacts.IOS_EXTENSION) ? MobileBuildArtifacts.IOS_EXTENSION : MobileBuildArtifacts.ANDROID_EXTENSION
     }
 
+    /**
+     * Persist the custom test flight profile settings using TeamCity's persistence if
+     * there are any to save or update.
+     *
+     * @param customSettingsPosted
+     * @param profile
+     */
     private void persistCustomTestFlightProfile(final boolean customSettingsPosted, final TestFlightProfile profile) {
         if (customSettingsPosted) {
-            TestFlightProjectSettings settings = (TestFlightProjectSettings) projectSettingsManager.getSettings(profile.projectId, TestFlightProjectSettings.NAME)
+            TestFlightSettings settings = (TestFlightSettings) projectSettingsManager.getSettings(profile.projectId, TestFlightSettings.NAME)
             settings.updateProfile(profile)
-            SProject project = buildsManager.findBuildInstanceById(profile.buildId).getBuildType().getProject()
+            SProject project = buildsManager.findBuildInstanceById(profile.buildId).buildType.project
             project.persist()
         }
     }

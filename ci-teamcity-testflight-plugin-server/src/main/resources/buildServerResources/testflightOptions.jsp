@@ -3,7 +3,7 @@
 <c:url var="actionUrl" value="/testFlight.html"/>
 <c:forEach items="${testflightOptions}" var="testflight">
     <sf:form action="${actionUrl}" method="post">
-        <input type="hidden" id="customSettings" name="customSettings" value="false">
+        <input type="hidden" id="isCustomSettings" name="isCustomSettings" value="false">
         <input type="hidden" id="internalBuildId" name="internalBuildId" value="${testflight.internalBuildId}"/>
         <input type="hidden" id="buildId" name="buildId" value="${testflight.buildId}"/>
         <input type="hidden" id="id" name="id" value="${testflight.id}"/>

@@ -8,7 +8,7 @@ class TestFlightSettingsFactory implements ProjectSettingsFactory {
 
     @NotNull
     public ProjectSettings createProjectSettings(final String projectId) {
-        return new TestFlightProjectSettings();
+        return new TestFlightSettings();
     }
 
 }
