@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/DECORATION/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/DECORATION/1.1.0 http://maven.apache.org/xsd/decoration-1.1.0.xsd"
+         name="Testflight Plugin for Teamcity">
+
+	<publishDate position="right" format="yyyy-MM-dd HH:mm:ss"/>
+	<version position="right"/>
+	<!--<bannerLeft>-->
+		<!--<name>Testflight plugin for teamcity</name>-->
+		<!--<height>120</height>-->
+		<!--<width>403</width>-->
+		<!--<src>banner_left.png</src>-->
+		<!--<href>http://willowtreeapps.github.com/ci-teamcity-testflight-plugin/</href>-->
+	<!--</bannerLeft>-->
+
+	<bannerRight>
+		<name>WillowTree Apps</name>
+		<height>60</height>
+		<width>170</width>
+		<src>banner_right.png</src>
+		<href>http://www.willowtreeapps.com/</href>
+	</bannerRight>
+	<body>
+		<head>
+			<title>TestFlight Plugin for TeamCity: Publish your .ipa and/or .apk artifacts to TestFlight</title>
+
+			<script type="text/javascript">
+
+//				var _gaq = _gaq || [];
+//				_gaq.push(['_setAccount', 'UA-4616861-3']);
+//				_gaq.push(['_trackPageview']);
+//            
+//				(function() {
+//				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async =
+//				true;
+//				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') +
+//				'.google-analytics.com/ga.js';
+//				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga,
+//				s);
+//				})();
+
+			</script>
+		</head>
+		<links>
+			<item name="WillowTree Apps" href="http://www.willowtreeapps.com"/>
+		</links>
+
+		<menu name="Main">
+			<item name="Introduction" href="index.html"/>
+            <item name="Downloads" href="downloads.html"/>
+			<item name="JavaDoc" href="apidocs/"/>
+		</menu>
+		<menu ref="reports"/>
+	</body>
+</project>
