@@ -1,7 +1,7 @@
 ci-teamcity-testflight-plugin
 =============================
 
-This plugin is an extension to the <a href="http://www.jetbrains.com/teamcity/>Team City Continuous Integration Server's</a> "build results" page.  It was build with Team City version 8.0.4.
+This plugin is an extension to the <a href="http://www.jetbrains.com/teamcity/>Team City Continuous Integration Server</a> build results page.  It was build with Team City version 8.0.4.
 
 It gives you the ability to publish mobile application build artifacts to <a href="https://testflightapp.com">TestFlight</a>.
 
@@ -25,6 +25,6 @@ The following two artifacts should be configured for an iOS application:
 **/*.ipa
 pom.xml
 
-To deploy this plugin copy the .zip file located in the deploy directory into your [user home]/.BuildServer/plugins directory and restart your Team City application.
+To deploy this plugin copy the deploy/ci-teamcity-testflight-plugin.zip file into your [user home]/.BuildServer/plugins directory and restart your Team City application.
 
 Please report issues to:  https://github.com/willowtreeapps/ci-teamcity-testflight-plugin/issues
