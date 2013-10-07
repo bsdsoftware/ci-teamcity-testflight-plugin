@@ -25,4 +25,6 @@ The following two artifacts should be configured for an iOS application:
 **/*.ipa
 pom.xml
 
+To deploy this plugin copy the .zip file located in the deploy directory into your [user home]/.BuildServer/plugins directory and restart your Team City application.
+
 Please report issues to:  https://github.com/willowtreeapps/ci-teamcity-testflight-plugin/issues
