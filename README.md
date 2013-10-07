@@ -1,7 +1,7 @@
 ci-teamcity-testflight-plugin
 =============================
 
-This plugin is an extension to the <a href="http://www.jetbrains.com/teamcity/>Team City Continuous Integration Server</a> build results page.  It was build with Team City version 8.0.4.
+This plugin is an extension to the <a href="http://www.jetbrains.com/teamcity/">Team City Continuous Integration Server</a> build results page.  It was build with Team City version 8.0.4.
 
 It gives you the ability to publish mobile application build artifacts to <a href="https://testflightapp.com">TestFlight</a>.
 
