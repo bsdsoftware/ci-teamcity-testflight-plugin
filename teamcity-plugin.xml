@@ -5,7 +5,7 @@
         <display-name>ci-teamcity-plugin</display-name>
         <version>@Version@</version>
         <description>Adds TestFlight form to select and push build artifacts to the Test Flight targets configured in a project's pom file.</description>
-        <download-url>Plugin download URL</download-url>
+        <download-url>https://github.com/willowtreeapps/ci-teamcity-testflight-plugin/releases/tag/ci-teamcity-testflight-plugin-1.0</download-url>
         <email>andrew.shannon@willowtreeapps.com</email>
         <vendor>
             <name>WillowTree Apps</name>
