@@ -16,6 +16,7 @@
       <site.downloads.dir>${project.basedir}/src/site/resources/downloads/</site.downloads.dir>
       <teamcity-version>8.0</teamcity-version>
       <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+      <github.global.server>github</github.global.server>
   </properties>
   <repositories>
     <repository>

@@ -21,8 +21,6 @@
 	</bannerRight>
 	<body>
 		<head>
-			<title>TestFlight Plugin for TeamCity: Publish your .ipa and/or .apk artifacts to TestFlight</title>
-
 			<script type="text/javascript">
 
 //				var _gaq = _gaq || [];
