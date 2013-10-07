@@ -1,8 +1,0 @@
-
-Download TeamCity TestfFlight Plugin
-
-* Latest <<SNAPSHOT>> Release:
-
-*--------------------------------------*------------------------------------------------------------------------:
-| ci-teamcity-testflight-plugin-${project.version}  | {{{./downloads/ci-teamcity-testflight-plugin.zip}zip}}       |
-*--------------------------------------*------------------------------------------------------------------------:
