@@ -36,17 +36,16 @@ Maven configuration is easy.  Add as many profiles as you like.  You only need t
 In addition to the profiles you need to configure artifacts in the Team City General Settings page.
 
 The following two artifacts should be configured for an Android application:
-`
-**/*.apk
 
-pom.xml
- `
+`**/*.apk
+
+pom.xml`
+
 The following two artifacts should be configured for an iOS application:
-`
-**/*.ipa
 
-pom.xml
-`
+`**/*.ipa
+
+pom.xml`
 
 To deploy this plugin copy the <a href="https://github.com/willowtreeapps/ci-teamcity-testflight-plugin/raw/master/release/ci-teamcity-testflight-plugin-1.0.zip">ci-teamcity-testflight-plugin-1.0.zip</a> file into your [user home]/.BuildServer/plugins directory and restart your Team City application.
 
