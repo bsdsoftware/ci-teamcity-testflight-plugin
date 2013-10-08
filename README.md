@@ -14,15 +14,25 @@ If you are not using Maven then you can still use this plugin and manually enter
 Maven configuration is easy.  Add as many profiles as you like.  You only need to add the following properties:
 
 `<profiles>
+
     <profile>
+
         <id>testflightInternal</id>
+
         <properties>
+
             <teamcity.testflight.ApiToken>your api token</teamcity.testflight.ApiToken>
+
             <teamcity.testflight.TeamToken>your team-specific token</teamcity.testflight.TeamToken>
+
             <teamcity.testflight.DistroList>your team-specific distro list</teamcity.testflight.DistroList>
+
             <teamcity.testflight.NotifyDistroList>true or false</teamcity.testflight.NotifyDistroList>
+
         </properties>
+
     </profile>
+
 </profile>`
 
 In addition to the profiles you need to configure artifacts in the Team City General Settings page.
