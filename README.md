@@ -11,7 +11,19 @@ If you are using <a href="http://maven.apache.org/">Maven</a> to build your soft
 
 If you are not using Maven then you can still use this plugin and manually enter the required TestFlight parameters.  Note that when using it this way the parameters you enter will be persisted using Team City's project-specific configuration settings.  The settings will then be presented thereafter for your project.  You will also be able to edit the settings if you choose.
 
-Maven configuration is easy.  Add as many profiles as you like similar to those shown at <a href="http://willowtreeapps.github.io/maven-testflight-plugin/example.html">http://willowtreeapps.github.io/maven-testflight-plugin/example.html</a>.
+Maven configuration is easy.  Add as many profiles as you like.  You only need to add the following properties:
+
+`<profiles>
+    <profile>
+        <id>testflightInternal</id>
+        <properties>
+            <teamcity.testflight.ApiToken>your api token</teamcity.testflight.ApiToken>
+            <teamcity.testflight.TeamToken>your team-specific token</teamcity.testflight.TeamToken>
+            <teamcity.testflight.DistroList>your team-specific distro list</teamcity.testflight.DistroList>
+            <teamcity.testflight.NotifyDistroList>true or false</teamcity.testflight.NotifyDistroList>
+        </properties>
+    </profile>
+</profile>`
 
 In addition to the profiles you need to configure artifacts in the Team City General Settings page.
 
