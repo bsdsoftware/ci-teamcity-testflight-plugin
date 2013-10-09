@@ -9,6 +9,8 @@ If you are using <a href="http://maven.apache.org/">Maven</a> to build your soft
 
 If you are not using Maven then you can still use this plugin and manually enter the required TestFlight parameters.  Note that when using it this way the parameters you enter will be persisted using Team City's project-specific configuration settings.  The settings will then be presented thereafter for your project.  You will also be able to edit the settings if you choose.
 
+Each build you push will also be tagged so you know exactly what the code was that you shipped.  Tags are formatted as:  TF_the_profile_id.
+
 Maven configuration is easy.  Add as many profiles as you like.  You only need to add the following properties:
 
 `<profiles>
